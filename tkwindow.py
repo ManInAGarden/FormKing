@@ -49,7 +49,7 @@ class TkWindow():
     def make_gui(self, title):
         self.parent.title(title)
         Style().configure("TFrame", pad=5)
-        Style().configure("TButton", relief="flat", padx=5, pady=5)
+        Style().configure("TButton", padx=5, pady=5)
         self.frame = Frame(self.parent,
             width=self.w,
             height=self.h)
