@@ -1,4 +1,5 @@
 from reportlab.pdfgen import canvas
+from reportlab.lib.units import mm
 
 from guielement import *
 
@@ -28,7 +29,13 @@ class PrintFile():
         :return: nothing
         """
         c = canvas.Canvas(name)
-        c.drawString(100, 100, "Hello")
+        c.translate(mm, mm)
+        for key, dat in self.data.items():
+            el = self.elements[key]
+            if el.docpos != (0, 0):
+                posx, posy = el.docpos
+                c.drawString(mm*posx, mm*posy, dat)
+
         c.showPage()
         c.save()
 
