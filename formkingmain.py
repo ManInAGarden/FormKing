@@ -4,6 +4,9 @@ from tkinter.ttk import *
 import tkinter.messagebox as messagebox
 import configparser as confp
 
+from guielement import *
+from printform import *
+
 CONFIG_FILE_NAME = "FormKing.cfg"
 
 class FormKingWindow(TkWindow):
@@ -195,80 +198,29 @@ class FormKingWindow(TkWindow):
         titlab.grid(columnspan=lastcol+1)
         self.frame.pack()
 
+    def get_data_dict(self):
+        answ = {}
+        for key, el in self.elements.items():
+            wid = self.widgets[key]
+            if wid.__class__ is Entry:
+                data = wid.get()
+                if data is not None and len(data) > 0:
+                    answ[key] = data
+
+        return answ
 
     def print_cb(self):
-        raise Exception("not yet implemented")
+        pdfname = "formking.pdf"
+        datadict = self.get_data_dict()
+        prt = PrintFile(self.elements, datadict)
+        prt.create_pdf(pdfname)
 
     def exit_cb(self):
         if messagebox.askyesno("Frage", "Wirklich beenden?", parent=self.frame):
             self.parent.destroy()
 
 
-class GUIElement:
-    def __init__(self):
-        self.name = ""
-        self.wid_type = ""
-        self.label_position = (0, 1)
-        self.label_span = (1, 1)
-        self.widget_position = (0, 1)
-        self.widget_span = (1, 1)
-        self.width = 5
-        self.caption = ""
-        self.stick = ("E", "W")
-        self.default = ""
-        self.valuetype = None
 
-    def __str__(self):
-        lstick, estick = self.stick
-        return "{0} is {1}\nlabel: {2} span {3} stick {6}\nentry:{4} span {5} stick {7}".format(self.name,
-                                     self.wid_type,
-                                     self.label_position, self.label_span,
-                                     self.widget_position, self.widget_span,
-                                     lstick,
-                                     estick)
-
-    def prepare_string(self, ins):
-        answ = ins.replace("#COMMA#", ",")
-        return answ.strip()
-
-    def read_from_string(self, line):
-        """
-        :type line: str
-        :param line: string represantation of a tk gui element
-        :return: nothing
-        """
-        strrep = line.replace("\,", "#COMMA#")
-        parts = strrep.split(",")
-        #print("processing " + str(parts))
-        p = 0
-        self.name = self.prepare_string(parts[p])
-        p += 1
-        self.wid_type = self.prepare_string(parts[p])
-        p += 1
-        self.caption = self.prepare_string(parts[p])
-        p += 1
-        self.label_position = (int(parts[p]), int(parts[p + 1]) + 1)
-        p += 2
-        self.label_span = (int(parts[p]), int(parts[p + 1]))
-        p += 2
-        labelstick = parts[p].strip()
-        p += 1
-        self.widget_position = (int(parts[p]), int(parts[p + 1]) + 1)
-        p += 2
-        self.widget_span = (int(parts[p]), int(parts[p + 1]))
-        p += 2
-        widgetstick = parts[p].strip()
-        p += 1
-        self.width = int(parts[p].strip())
-        p += 1
-        self.height = int(parts[p].strip())
-        p += 1
-        self.default = self.prepare_string(parts[p])
-        p += 1
-        self.valuetype = parts[p].strip()
-
-        self.stick = labelstick, widgetstick
-        print(self)
 
 if __name__ == "__main__":
     root = Tk()
