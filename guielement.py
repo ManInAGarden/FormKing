@@ -1,7 +1,10 @@
 class GUIElement:
+    currorder = 0
+
     def __init__(self):
         self.name = ""
         self.wid_type = ""
+        self.order = 0
         self.label_position = (0, 1)
         self.label_span = (1, 1)
         self.widget_position = (0, 1)
@@ -32,6 +35,11 @@ class GUIElement:
         :param line: string represantation of a tk gui element
         :return: nothing
         """
+        # establish a squence number for every element produced
+        cls = self.__class__
+        self.order = cls.currorder
+        cls.currorder += 1
+
         strrep = line.replace("\,", "#COMMA#")
         parts = strrep.split(",")
         #print("processing " + str(parts))

@@ -28,16 +28,22 @@ class PrintFile():
         :param name: name of the pdf to be created
         :return: nothing
         """
-        c = canvas.Canvas(name)
-        c.translate(mm, mm)
+        c = canvas.Canvas(name, pagesize=(141.0*mm, 100.0*mm))
+        # would move the origin to 1,1 mm. We don't need that here c.translate(mm, mm)
+        c.setFont("Courier", 12)
         for key, dat in self.data.items():
             el = self.elements[key]
             if el.docpos != (0, 0):
                 posx, posy = el.docpos
                 c.drawString(mm*posx, mm*posy, dat)
 
-        c.showPage()
+        #c.showPage()
         c.save()
+
+    def get_fonts(self):
+        c = canvas.Canvas("noname")
+        fonts = c.getAvailableFonts()
+        return fonts
 
     def print_pdf(self, printername: str):
         """

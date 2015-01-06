@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter.ttk import *
 import tkinter.messagebox as messagebox
 import configparser as confp
+import datetime
 
 from guielement import *
 from printform import *
@@ -155,8 +156,9 @@ class FormKingWindow(TkWindow):
         titlab["font"] = "Helvetica 16 bold italic"
         lastrow = 0
         lastcol = 0
-        # Style().configure("TEntry", font="systemfixed 18 normal")
-        for key, el in self.elements.items():
+        # Style().configure("TEntry", hightlightbackground="red")
+        for el in sorted(self.elements.values(), key=lambda var: var.order):
+            key = el.name
             lstick, estick = el.stick
             lastcol, lastrow = self.check_cells(el, (lastcol, lastrow))
             if el.wid_type == "ENTRY":
@@ -210,7 +212,7 @@ class FormKingWindow(TkWindow):
         return answ
 
     def print_cb(self):
-        pdfname = "formking.pdf"
+        pdfname = "formking{0:%Y%m%d%H%M%S}.pdf".format(datetime.datetime.now())
         datadict = self.get_data_dict()
         prt = PrintFile(self.elements, datadict)
         prt.create_pdf(pdfname)
