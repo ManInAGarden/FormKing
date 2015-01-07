@@ -92,6 +92,31 @@ class TkWindow():
         entry.grid(row=erow, column=ecol, columnspan=ecolspan, rowspan=erowspan, sticky=estick)
         return entry
 
+    def makeframe(self, parent, fpos=(0,0), fspan=(1,1), fstick="NEWS"):
+        fcol, frow = fpos
+        fcolspan, frowspan = fspan
+        frame = Frame(parent).grid(column=fcol, row=frow, columnspan=fcolspan, rowspan=frowspan, sticky=fstick)
+        return frame
+
+    def makehelpedentry(self, parent, lpos=(0, 0), epos=(0, 1), lspan=(1, 1), espan=(1, 1), caption='', lstick=E, estick=W, width=None, **options):
+        fcol, frow = epos
+        fr = Frame(parent)
+        fr.grid(column=fcol, row=frow, sticky=estick)
+        # frame = self.makeframe(parent, fpos=epos, fspan=espan)
+        entry = Entry(fr, width=width, **options)
+        entry.pack()
+        inlabel = Label(fr)
+        inlabel.pack()
+
+        if caption is not None and len(caption) > 0:
+            lcol, lrow = lpos
+            lcolspan, lrowspan = lspan
+            lab = Label(parent, text=caption).grid(column=lcol, row=lrow, columnspan=lcolspan, rowspan=lrowspan,
+                                                   sticky=lstick)
+
+        return (entry, inlabel)
+
+
     def setentryvalue(self, entry, value):
         entry.delete(0, END)
         entry.insert(0, value)

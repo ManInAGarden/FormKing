@@ -17,8 +17,8 @@ class FormKingWindow(TkWindow):
         self.entry_font = "courier 10"
         self.elements = {}
         self.widgets = {}
+        self.helplabs = {}
         super().__init__(parent, title, width=width, height=height)
-
 
     def loaded(self):
         pass
@@ -64,22 +64,20 @@ class FormKingWindow(TkWindow):
         :type tst: str
         """
         if ',' not in tst:
-            return False
+            return "Komme fehlt"
 
         comidx = tst.index(',')
         if comidx <= 0:
-            print("comidx issue #1 comidx is <" + str(comidx) + ">")
-            return False
+            return "Betrag vor dem Komma fehlt"
 
         if (len(tst) - comidx) != 3:  # the mysteries of integer caclulations
-            print("comidx issue #2 comidx is <" + str(comidx) + "> len <" + str(len(tst)) + ">")
-            return False
+            return "Es müssen exakt zwei Nachkommastellen sein"
 
         if not tst.replace(',', '', 1).isdigit():
             print("not only digits an comma")
-            return False
+            return "Falsche Zeichen für einen Geldbetrag"
 
-        return True
+        return None
 
     def is_valid_ibanchecksum(self, iban):
         """
@@ -111,14 +109,21 @@ class FormKingWindow(TkWindow):
         """
         compact = tst.replace(" ", "")
         if len(compact) > 34:
-            print("iban too long")
-            return False
+            return "Zu viele Zeichen für eine IBAN"
 
         if not compact[0:1] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-            print("no valid country code")
-            return False
+            return "Der Ländercode muss mit zwei Großbuchenstaben angegeben werden"
 
-        return self.is_valid_ibanchecksum(compact)
+        if (len(compact) > 0) and not self.is_valid_ibanchecksum(compact):
+            return "Prüfsummencheck: Dies ist keine gültige IBAN"
+
+        return None
+
+    def checklength(self, element, value):
+        if len(value) > element.width:
+            return "Zu viele Zeichen für diesen Wert"
+
+        return None
 
     def validate(self, widname, value):
         """
@@ -127,22 +132,33 @@ class FormKingWindow(TkWindow):
         :type widname: str
         :type value: str
         """
-        print("validating <" + str(value) + ">")
+        # print("validating <" + str(value) + ">")
         # in dubio pro reo
-        self.widgets[widname].configure(foreground="black")
+        entry = self.widgets[widname]
+        entry.configure(foreground="black")
 
         el = self.elements[widname]
         valm = el.valuetype
-        if valm is None:
-            return True
-        if valm == "none":
-            return True
-        if valm == "text":
-            return True
-        if valm == "currency":
-            return self.iscurrency(value)
-        if valm == "iban":
-            return self.isiban(value)
+        errs = self.checklength(el, value)
+        # print("<" + str(errs) + ">")
+        if errs is None:
+            if valm is None:
+                errs = None
+            if valm == "none":
+                errs = None
+            if valm == "text":
+                errs = None
+            if valm == "currency":
+                errs = self.iscurrency(value)
+            if valm == "iban":
+                errs = self.isiban(value)
+
+        if errs is not None:
+            self.helplabs[widname].configure(text=errs, wraplength=entry.winfo_width())
+        else:
+            self.helplabs[widname].configure(text="")
+
+        return errs is None
 
     def invalid(self, widname):
         print("invalid")
@@ -162,31 +178,35 @@ class FormKingWindow(TkWindow):
             lstick, estick = el.stick
             lastcol, lastrow = self.check_cells(el, (lastcol, lastrow))
             if el.wid_type == "ENTRY":
-                self.widgets[el.name] = self.makeentry(self.frame,
-                                                       lpos = el.label_position,
-                                                       epos = el.widget_position,
-                                                       lspan = el.label_span,
-                                                       espan = el.widget_span,
-                                                       lstick = lstick,
-                                                       estick = estick,
-                                                       caption=el.caption,
-                                                       width=el.width,
-                                                       font=self.entry_font)
+                wid, lab = self.makehelpedentry(self.frame,
+                                                lpos = el.label_position,
+                                                epos = el.widget_position,
+                                                lspan = el.label_span,
+                                                espan = el.widget_span,
+                                                lstick = lstick,
+                                                estick = estick,
+                                                caption=el.caption,
+                                                width=el.width,
+                                                font=self.entry_font)
+
+                self.widgets[el.name] = wid
+                self.helplabs[el.name] = lab
                 # %W - entry widget name
                 # %P - entry string
-                self.setentryvalue(self.widgets[el.name], el.default)
-                self.widgets[el.name].config(validate="focusout",
-                                             validatecommand=(self.register(self.validate), el.name, "%P"),
-                                             invalidcommand=(self.register(self.invalid), el.name))
+                self.setentryvalue(wid, el.default)
+                wid.config(validate="focusout",
+                           validatecommand=(self.register(self.validate), el.name, "%P"),
+                           invalidcommand=(self.register(self.invalid), el.name))
+                lab.config(foreground="red")
             elif el.wid_type == "LABEL":
                 self.widgets[el.name] = self.makelabel(self.frame,
                                                        lpos=el.label_position,
                                                        lspan=el.label_span,
                                                        caption=el.caption)
 
-        print_bu = self.makebutton(self.frame, caption="Print", bpos=(0, lastrow + 1),
+        self.print_bu = self.makebutton(self.frame, caption="Print", bpos=(0, lastrow + 1),
                                    command=self.print_cb)
-        exit_bu = self.makebutton(self.frame, caption="Exit", bpos=(lastcol, lastrow + 1),
+        self.exit_bu = self.makebutton(self.frame, caption="Exit", bpos=(lastcol, lastrow + 1),
                                   command=self.exit_cb)
 
         self.parent.config(padx=5, pady=5)
@@ -212,10 +232,17 @@ class FormKingWindow(TkWindow):
         return answ
 
     def print_cb(self):
-        pdfname = "formking{0:%Y%m%d%H%M%S}.pdf".format(datetime.datetime.now())
-        datadict = self.get_data_dict()
-        prt = PrintFile(self.elements, datadict)
-        prt.create_pdf(pdfname)
+        errors = 0
+        for lab in self.helplabs.values():
+            labtxt = lab["text"]
+            if len(labtxt) > 0:
+                errors += 1
+
+        if errors > 0 and messagebox.askyesno("Frage", "Es wurden Fehler in der Eingabe erkannt. Trotzdem drucken?"):
+            pdfname = "formking{0:%Y%m%d%H%M%S}.pdf".format(datetime.datetime.now())
+            datadict = self.get_data_dict()
+            prt = PrintFile(self.elements, datadict)
+            prt.create_pdf(pdfname)
 
     def exit_cb(self):
         if messagebox.askyesno("Frage", "Wirklich beenden?", parent=self.frame):
