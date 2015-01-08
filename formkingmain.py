@@ -4,6 +4,7 @@ from tkinter.ttk import *
 import tkinter.messagebox as messagebox
 import configparser as confp
 import datetime
+import platform
 
 from guielement import *
 from printform import *
@@ -231,6 +232,12 @@ class FormKingWindow(TkWindow):
 
         return answ
 
+    def print_on_linux(self, filename):
+        pass
+
+    def print_on_windows(self, filename):
+        pass
+
     def print_cb(self):
         errors = 0
         for lab in self.helplabs.values():
@@ -243,6 +250,11 @@ class FormKingWindow(TkWindow):
             datadict = self.get_data_dict()
             prt = PrintFile(self.elements, datadict)
             prt.create_pdf(pdfname)
+
+            if platform.system() == "Linux":
+                self.print_on_linux(pdfname)
+            elif platform.system() == "Vista":
+                self.print_on_windows(pdfname)
 
     def exit_cb(self):
         if messagebox.askyesno("Frage", "Wirklich beenden?", parent=self.frame):
