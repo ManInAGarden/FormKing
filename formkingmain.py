@@ -232,12 +232,6 @@ class FormKingWindow(TkWindow):
 
         return answ
 
-    def print_on_linux(self, filename):
-        pass
-
-    def print_on_windows(self, filename):
-        pass
-
     def print_cb(self):
         errors = 0
         for lab in self.helplabs.values():
@@ -245,16 +239,12 @@ class FormKingWindow(TkWindow):
             if len(labtxt) > 0:
                 errors += 1
 
-        if errors > 0 and messagebox.askyesno("Frage", "Es wurden Fehler in der Eingabe erkannt. Trotzdem drucken?"):
+        if errors==0 or ((errors > 0) and messagebox.askyesno("Frage", "Es wurden Fehler in der Eingabe erkannt. Trotzdem drucken?")):
             pdfname = "formking{0:%Y%m%d%H%M%S}.pdf".format(datetime.datetime.now())
             datadict = self.get_data_dict()
             prt = PrintFile(self.elements, datadict)
             prt.create_pdf(pdfname)
-
-            if platform.system() == "Linux":
-                self.print_on_linux(pdfname)
-            elif platform.system() == "Vista":
-                self.print_on_windows(pdfname)
+            prt.print_pdf()
 
     def exit_cb(self):
         if messagebox.askyesno("Frage", "Wirklich beenden?", parent=self.frame):
