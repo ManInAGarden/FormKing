@@ -1,6 +1,6 @@
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
-
+import os
 import platform
 import subprocess
 
@@ -60,21 +60,25 @@ class PrintFile():
             raise Exception("Printing to a printer other than standard is not yet implemented")
 
         sys_name = platform.system()
+        done = False
+
         if sys_name == "Linux":
             done = self.print_on_linux(self.pdf_name)
         elif sys_name == "Windows":
             done = self.print_on_windows(self.pdf_name)
-        elif sys_name == "Darwin": # we're on a Mac
+        elif sys_name == "Darwin":  # we're on a Mac
             done = self.print_on_mac(self.pdf_name)
 
         return done
 
     def print_on_linux(self, filename):
-        pass
+        curd = os.path.curdir
+        fullfile = curd + "/" + filename
+        pr = subprocess.Popen(["lp", fullfile])
 
     def print_on_windows(self, filename):
         # win32api.ShellExecute(0, "print", filename, None,  ".",  0)
-        lpr = subprocess.Popen(filename)
+        lp = subprocess.Popen(filename)
         return True
 
     def print_on_max(self, filename):
