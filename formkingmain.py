@@ -1,3 +1,5 @@
+import os
+import os.path as path
 from tkwindow import *
 from tkinter import *
 from tkinter.ttk import *
@@ -10,15 +12,21 @@ from guielement import *
 from printform import *
 
 CONFIG_FILE_NAME = "FormKing.cfg"
+TEMPDIR = "."
 
 class FormKingWindow(TkWindow):
 
     def __init__(self, parent, title, width=400, height=300):
+        global TEMPDIR
         self.form_title = ""
         self.entry_font = "courier 10"
         self.elements = {}
         self.widgets = {}
         self.helplabs = {}
+        # create .formking if not found
+        TEMPDIR = os.getenv("HOME") + "/" + ".formking"
+        if not os.path.exists(TEMPDIR):
+            os.mkdir(TEMPDIR)
         super().__init__(parent, title, width=width, height=height)
 
     def loaded(self):
@@ -233,6 +241,7 @@ class FormKingWindow(TkWindow):
         return answ
 
     def print_cb(self):
+        global TEMPDIR
         errors = 0
         for lab in self.helplabs.values():
             labtxt = lab["text"]
@@ -240,7 +249,10 @@ class FormKingWindow(TkWindow):
                 errors += 1
 
         if errors==0 or ((errors > 0) and messagebox.askyesno("Frage", "Es wurden Fehler in der Eingabe erkannt. Trotzdem drucken?")):
-            pdfname = "formking{0:%Y%m%d%H%M%S}.pdf".format(datetime.datetime.now())
+            pdfname = "{0:s}{1:s}formking{2:%Y%m%d%H%M%S}.pdf".format(
+                TEMPDIR,
+                "/",
+                datetime.datetime.now())
             datadict = self.get_data_dict()
             prt = PrintFile(self.elements, datadict)
             prt.create_pdf(pdfname)
