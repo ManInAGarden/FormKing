@@ -1,5 +1,6 @@
 # -*- coding: utf-8 *-*
 # made for python3!
+#Version 1.0.0.1
 
 from tkinter import *
 from tkinter.ttk import *
@@ -128,19 +129,20 @@ class TkWindow():
     def setbuttontext(self, button, txt):
         button['text'] = txt
 
-    def makecombo(self, parent, cpos=(1,0) , lpos=(0, 0), caption='',
+    def makecombo(self, parent, cpos=(1, 0), lpos=(0, 0), caption='',
+                  lstick=E, cstick=W,
                   width=None, **options):
         ccol, crow = cpos
         lcol, lrow = lpos
         if caption != '':
-            Label(parent, text=caption).grid(row=lrow, column=lcol, sticky=E)
+            Label(parent, text=caption).grid(row=lrow, column=lcol, sticky=lstick)
 
         cbox = Combobox(parent, **options)
 
         if width:
             cbox.config(width=width)
 
-        cbox.grid(row=crow, column=ccol)
+        cbox.grid(row=crow, column=ccol, sticky=cstick)
 
         return cbox
 
@@ -164,7 +166,7 @@ class TkWindow():
                  **options):
 
         lcol, lrow = lpos
-        llco, llrow = llpos
+        llcol, llrow = llpos
         lcolspan, lrowspan = lspan
         frame = Frame(parent)
         frame.grid(row=lrow, column=lcol, rowspan=lrowspan, columnspan=lcolspan)
@@ -202,5 +204,19 @@ class TkWindow():
         for element in elements:
             lb.insert(END, element)
 
+    def addlistelement(self, lb, element):
+        lb.insert(END, element)
+
+    def removelistelementat(self, lb, element):
+        lb.delete(element)
+
+    def getselectedlistelement(self, lb):
+        idx = -1
+        try:
+            idx, = lb.curselection()
+        except:
+            pass
+
+        return idx
 
 
