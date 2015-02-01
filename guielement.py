@@ -72,6 +72,7 @@ class GUIElement:
         p += 1
         self.docpos =  int(parts[p].strip()), int(parts[p + 1].strip())
         p += 2
+        self.letterspacing = int(parts[p].strip())
 
         self.stick = labelstick, widgetstick
         print(self)

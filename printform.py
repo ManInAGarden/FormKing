@@ -12,9 +12,12 @@ class PrintFile():
     class to support printing into forms. This is done by creating a pfd
     first which can then be printed
     """
-    def __init__(self, elements, data):
+    def __init__(self, elements, data, pagesize=(10, 150), fontname="Courier", fontsize=12):
         """
         init a new instance of Printfile
+        :param fontname: Name for the font to be used in thins form
+        :param fontsize: Size of font o be used throughout the form
+        :param pagesize: pagesize for the form as (width, height)
         :param elements: dict of defining elements all of class GUIElement
         :type elements: dict
         :param data: dict containing the data to pe printed
@@ -24,6 +27,9 @@ class PrintFile():
         self.data = data
         self.elements = elements
         self.pdf_name = None
+        self.font_name = fontname
+        self.font_size = fontsize
+        self.page_width, self.page_height = pagesize
 
     def create_pdf(self, name: str):
         """
@@ -33,12 +39,14 @@ class PrintFile():
         """
         c = canvas.Canvas(name, pagesize=(141.0*mm, 100.0*mm))
         # would move the origin to 1,1 mm. We don't need that here c.translate(mm, mm)
-        c.setFont("Courier", 12)
+        c.setFont(self.font_name, self.font_size)
         for key, dat in self.data.items():
             el = self.elements[key]
             if el.docpos != (0, 0):
                 posx, posy = el.docpos
-                c.drawString(mm*posx, mm*posy, dat)
+                for single in dat:
+                    c.drawString(mm*posx, mm*posy, single)
+                    posx += el.letterspacing
 
         # c.showPage()
         c.save()
@@ -78,8 +86,8 @@ class PrintFile():
 
     def print_on_windows(self, filename):
         # win32api.ShellExecute(0, "print", filename, None,  ".",  0)
-        lp = subprocess.Popen(filename)
-        return True
+        # lp = subprocess.Popen(filename)
+        return False
 
     def print_on_max(self, filename):
         # I have no idea how to print on a mac

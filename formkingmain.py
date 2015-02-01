@@ -20,14 +20,32 @@ class FormKingWindow(TkWindow):
         global TEMPDIR
         self.form_title = ""
         self.entry_font = "courier 10"
+        self.page_height = 105
+        self.page_width = 150
+        self.doc_font = "Courier"
+        self.doc_font_size = 12
         self.elements = {}
         self.widgets = {}
         self.helplabs = {}
         # create .formking if not found
-        TEMPDIR = os.getenv("HOME") + "/" + ".formking"
+        TEMPDIR = self.get_home_dir(".formking")
         if not os.path.exists(TEMPDIR):
             os.mkdir(TEMPDIR)
         super().__init__(parent, title, width=width, height=height)
+
+    def get_home_dir(self, subdir):
+        sys_name = platform.system()
+        answ = None
+        if sys_name == "Linux":
+            answ = os.getenv("HOME") + path.sep + subdir
+        elif sys_name == "Windows":
+            answ = os.getenv("HOMEDRIVE") + os.getenv("HOMEPATH") + path.sep + subdir
+        elif sys_name == "Darwin":  # we're on a Mac
+            # this may be wrong - untested
+            answ = os.getenv("HOME") + path.sep + subdir
+
+        return answ
+
 
     def loaded(self):
         pass
@@ -44,6 +62,14 @@ class FormKingWindow(TkWindow):
                 self.form_title = cp[name][key]
             elif key == "entryfont":
                 self.entry_font = cp[name][key]
+            elif key == "docfont":
+                self.doc_font = cp[name][key]
+            elif key == "docfontsize":
+                self.doc_font_size = int(cp[name][key])
+            elif key == "pageheight":
+                self.page_height = float(cp[name][key])
+            elif key == "pagewidth":
+                self.page_width = float(cp[name][key])
 
 
     def check_cells(self, element, currmax):
@@ -254,7 +280,10 @@ class FormKingWindow(TkWindow):
                 "/",
                 datetime.datetime.now())
             datadict = self.get_data_dict()
-            prt = PrintFile(self.elements, datadict)
+            prt = PrintFile(self.elements, datadict,
+                            pagesize=(self.page_width, self.page_height),
+                            fontname=self.doc_font,
+                            fontsize=self.doc_font_size)
             prt.create_pdf(pdfname)
             prt.print_pdf()
 
